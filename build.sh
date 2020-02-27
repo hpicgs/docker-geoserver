@@ -7,6 +7,7 @@ MAJOR=2
 # Build Geoserver
 echo "Building GeoServer using the specified version "
 
+
 docker build --build-arg GS_VERSION=${MAJOR}.${MINOR}.${BUGFIX} -t docker-registry.hpi3d.de/ejp/ejpgeoserver-docker:${MAJOR}.${MINOR}.${BUGFIX} .
 
 # Build Arguments - To change the defaults when building the image
@@ -18,6 +19,7 @@ docker build --build-arg GS_VERSION=${MAJOR}.${MINOR}.${BUGFIX} -t docker-regist
 #--build-arg WAR_URL=http://downloads.sourceforge.net/project/geoserver/GeoServer/<GS_VERSION>/geoserver-<GS_VERSION>-war.zip
 #--build-arg INITIAL_MEMORY=2G
 #--build-arg MAXIMUM_MEMORY=8G
+
 
 
 
