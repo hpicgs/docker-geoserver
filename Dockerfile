@@ -7,13 +7,14 @@ FROM tomcat:$IMAGE_VERSION
 LABEL maintainer="Tim Sutton<tim@linfiniti.com>"
 
 ## The Geoserver version
-ARG GS_VERSION=2.16.1
+
+ARG GS_VERSION=2.15.2
 
 ## Would you like to use Oracle JDK
 ARG ORACLE_JDK=false
 
 ## Would you like to keep default Tomcat webapps
-ARG TOMCAT_EXTRAS=true
+ARG TOMCAT_EXTRAS=false
 
 ARG WAR_URL=http://downloads.sourceforge.net/project/geoserver/GeoServer/${GS_VERSION}/geoserver-${GS_VERSION}-war.zip
 ## Would you like to install community modules
