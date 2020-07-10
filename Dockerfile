@@ -1,6 +1,7 @@
 #--------- Generic stuff all our Dockerfiles should start with so we get caching ------------
-ARG IMAGE_VERSION=9.0.7-jre8
+#ARG IMAGE_VERSION=9.0.7-jre8
 
+ARG IMAGE_VERSION=9.0-jdk11-adoptopenjdk-openj9
 
 FROM tomcat:$IMAGE_VERSION
 
@@ -8,7 +9,7 @@ LABEL maintainer="Tim Sutton<tim@linfiniti.com>"
 
 ## The Geoserver version
 
-ARG GS_VERSION=2.15.2
+ARG GS_VERSION=2.17.1
 
 ## Would you like to use Oracle JDK
 ARG ORACLE_JDK=false
@@ -20,7 +21,7 @@ ARG WAR_URL=http://downloads.sourceforge.net/project/geoserver/GeoServer/${GS_VE
 ## Would you like to install community modules
 ARG COMMUNITY_MODULES=false
 #Install extra fonts to use with sld font markers
-RUN apt-get -y update; apt-get install -y fonts-cantarell lmodern ttf-aenigma ttf-georgewilliams ttf-bitstream-vera \
+RUN apt-get -y update; apt-get install -y wget fonts-cantarell lmodern ttf-aenigma ttf-georgewilliams ttf-bitstream-vera \
     ttf-sjfonts tv-fonts build-essential libapr1-dev libssl-dev default-jdk gdal-bin libgdal-java
 
 RUN set -e \
