@@ -1,8 +1,9 @@
 #!/bin/sh
 
-BUGFIX=1
-MINOR=17
 MAJOR=2
+MINOR=17
+BUGFIX=1
+
 
 # Build Geoserver
 echo "Building GeoServer ${MAJOR}.${MINOR}.${BUGFIX} "
@@ -14,13 +15,9 @@ docker build --build-arg GS_VERSION=${MAJOR}.${MINOR}.${BUGFIX} -t hpicgs/ejpgeo
 # Build Arguments - To change the defaults when building the image
 #need to specify a different value.
 
-#--build-arg ORACLE_JDK=true
-#--build-arg COMMUNITY_MODULES=true
-#--build-arg TOMCAT_EXTRAS=false
 #--build-arg WAR_URL=http://downloads.sourceforge.net/project/geoserver/GeoServer/<GS_VERSION>/geoserver-<GS_VERSION>-war.zip
 #--build-arg INITIAL_MEMORY=2G
 #--build-arg MAXIMUM_MEMORY=8G
-
 
 
 
