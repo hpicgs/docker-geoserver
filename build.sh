@@ -1,7 +1,7 @@
 #!/bin/sh
 
 MAJOR=2
-MINOR=17
+MINOR=18
 BUGFIX=1
 
 

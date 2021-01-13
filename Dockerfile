@@ -10,7 +10,7 @@ LABEL maintainer="Tim Sutton<tim@linfiniti.com>"
 
 ## The Geoserver version
 
-ARG GS_VERSION=2.17.1
+ARG GS_VERSION=2.18.1
 
 ## Would you like to use Oracle JDK
 ARG ORACLE_JDK=false
