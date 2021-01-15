@@ -1,7 +1,7 @@
 #--------- Generic stuff all our Dockerfiles should start with so we get caching ------------
 
 #ARG IMAGE_VERSION=9.0.7-jre8
-
+# possibly better, but does not build 9-jdk11-openjdk-buster
 ARG IMAGE_VERSION=9-jre11-slim
 
 FROM tomcat:$IMAGE_VERSION
