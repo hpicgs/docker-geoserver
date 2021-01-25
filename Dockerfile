@@ -18,9 +18,8 @@ ARG ORACLE_JDK=false
 
 ## Would you like to keep default Tomcat webapps
 ARG TOMCAT_EXTRAS=false
-
 ARG WAR_URL=http://downloads.sourceforge.net/project/geoserver/GeoServer/${GS_VERSION}/geoserver-${GS_VERSION}-war.zip
-ARG STABLE_PLUGIN_URL=https://liquidtelecom.dl.sourceforge.net/project/geoserver/GeoServer/${GS_VERSION}/extensions
+ARG STABLE_PLUGIN_URL=https://sourceforge.net/projects/geoserver/files/GeoServer/${GS_VERSION}/extensions
 
 #Install extra fonts to use with sld font markers
 
@@ -90,6 +89,7 @@ ENV \
     DB_BACKEND= \
     LOGIN_STATUS=on \
     WEB_INTERFACE=false
+
     
 WORKDIR /scripts
 RUN mkdir -p  ${GEOSERVER_DATA_DIR} ${LETSENCRYPT_CERT_DIR} ${FOOTPRINTS_DATA_DIR} ${FONTS_DIR} ${GEOWEBCACHE_CACHE_DIR}

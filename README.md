@@ -56,8 +56,13 @@ To build using a specific tagged release for tomcat image set the
 to choose which tag you need to build against.
 
 ```
-ie VERSION=2.16.2
-docker build --build-arg IMAGE_VERSION=8-jre8 --build-arg GS_VERSION=2.13.0 -t kartoza/geoserver:${VERSION} .
+ie VERSION=2.17.0
+docker build --build-arg IMAGE_VERSION=8-jre8 --build-arg GS_VERSION=2.17.0 -t kartoza/geoserver:${VERSION} .
+```
+
+For some recent builds it is necessary to set the JAVA_PATH as well (e.g. Apache Tomcat/9.0.36)
+```
+docker build --build-arg IMAGE_VERSION=9-jdk11-openjdk-slim --build-arg JAVA_HOME=/usr/local/openjdk-11/bin/java --build-arg GS_VERSION=2.17.0 -t kartoza/geoserver:2.17.0 .
 ```
 
 ### Building with file system overlays (advanced)
@@ -81,6 +86,7 @@ during the build. For example, to include a static web xml with CORS support `we
 create the file at `resources/overlays/usr/local/tomcat/conf/web.xml`.
 
 ## Environment Variables
+A full list of environment variables are specified in the .env file
 
 ### Activate plugins on runtime
 
@@ -119,10 +125,23 @@ docker run -d -p 8600:8080 --name geoserver -e SAMPLE_DATA=true kartoza/geoserve
 
 ```
 
+### Enable disk quota storage in PostgreSQL backend
+
+By default GeoServer uses H2 datastore for configuring dsk quota. You can
+use the PostgreSQL backend as a disk quota store.
+
+You will need to run a PostgreSQL DB and link it to a GeoServer instance.
+
+``` 
+docker run -d -p 5432:5432 --name db kartoza/postgis:13.0
+docker run -d -p 8600:8080 --name geoserver -- link db:db -e DB_BACKEND=POSTGRES -e HOST=db -e POSTGRES_PORT=5432 -e POSTGRES_DB=gis -e POSTGRES_USER=docker -e POSTGRES_PASS=docker kartoza/geoserver:2.18.0
+
+```
 ### Running under SSL
 You can use the environment variables to specify whether you want to run the GeoServer under SSL.
 Credits to [letsencrpt](https://github.com/AtomGraph/letsencrypt-tomcat) for providing the solution to
-run under SSL. Currently the container does not use PFX files , it ony uses pkcs12
+run under SSL. 
+
 
 If you set the environment variable `SSL=true` but do not provide the pem files (fullchain.pem and privkey.pem)
 the container will generate a self signed SSL certificates.
@@ -139,6 +158,15 @@ ie VERSION=2.16.2
 docker run -it --name geo -v /etc/letsencrpt:/etc/letsencrypt  -e PKCS12_PASSWORD=geoserver -e JKS_KEY_PASSWORD=geoserver -e JKS_STORE_PASSWORD=geoserver -e SSL=true -p 8443:8443 -p 8600:8080 kartoza/geoserver:${VERSION}  
 
 ```
+
+You can also use a PFX file with this image.
+Rename your PFX file as certificate.pfx and then mount the folder containing
+your pfx file. This will be converted to perm files. 
+
+**NB** When using PFX files make sure that the ALIAS_KEY you specify as
+an environment variable matches the ALIAS_KEY that was used when generating
+your PFX key.
+
 A full list of SSL variables is provided here
 * HTTP_PORT
 * HTTP_PROXY_NAME
@@ -161,14 +189,15 @@ A full list of SSL variables is provided here
 
 ### Removing Tomcat extras 
 
-To remove Tomcat extras including docs, examples, and the manager webapp, set the
-`TOMCAT_EXTRAS` environment variable to `false`:
+To include Tomcat extras including docs, examples, and the manager webapp, set the
+`TOMCAT_EXTRAS` environment variable to `true`:
+**NB** You should configure the env variable `TOMCAT_PASSWORD` to use a 
+strong password otherwise the default one is setup.
 
 ```
 ie VERSION=2.16.2
-docker run -it --name geoserver  -e TOMCAT_EXTRAS=false -p 8600:8080 kartoza/geoserver:${VERSION} 
+docker run -it --name geoserver  -e TOMCAT_EXTRAS=true -p 8600:8080 kartoza/geoserver:${VERSION} 
 ```
-
 
 
 ### Upgrading image to use a specific version
@@ -251,6 +280,25 @@ GEOSERVER_ADMIN_PASSWORD and GEOSERVER_ADMIN_USER to  change it on runtime.
 docker run --name "geoserver" -e GEOSERVER_ADMIN_USER=kartoza  -e GEOSERVER_ADMIN_PASSWORD=myawesomegeoserver -p 8080:8080 -d -t kartoza/geoserver
 ```
 
+## Clustering using JMS Plugin
+GeoServer supports clustering using JMS cluster plugin or using the ActiveMQ-broker. 
+
+This setup uses the JMS cluster plugin which uses an embedded broker. A docker-compose.yml
+is provided in the clustering folder which simulates the replication using 
+a shared data directory.
+
+The environment variables associated with replication are listed below
+* `CLUSTERING=True` - Specified whether clustering should be activated.
+* `BROKER_URL=tcp://0.0.0.0:61661` - This links to the internal broker provided by the JMS cluter plugin.
+This value will be different for (Master-Node)
+* `READONLY=disabled` - Determines if the GeoServer instance is Read only
+* `RANDOMSTRING=87ee2a9b6802b6da_master` - Used to create a unique CLUSTER_CONFIG_DIR for each instance. 
+* `INSTANCE_STRING=d8a167a4e61b5415ec263` - Used to differentiate cluster instance names
+* `CLUSTER_DURABILITY=false`
+* `TOGGLE_MASTER=true` - Differentiates if the instance will be a Master
+* `TOGGLE_SLAVE=true` - Differentiates if the instance will be a Node
+* `EMBEDDED_BROKER=disabled` - Should be disabled for the Node
+
 ## Running the Image 
 
 ### (manual docker commands)
@@ -331,6 +379,11 @@ or Dropbox or Google Drive if you want to use another commercial product. These
 products all have one limitation though: they require interaction
 to register applications or keys. With Resilio Sync you can completely
 automate the process without user intervention.
+
+### Contributing to the image
+We welcome users who want to contribute in enriching this service. We follow
+the git principles and all pull requests should be against the develop branch so that
+we can test them and when we are happy we push to the master branch.
 
 ### Support
 
