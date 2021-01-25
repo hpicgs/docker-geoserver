@@ -45,7 +45,7 @@ ENV \
     DEBIAN_FRONTEND=noninteractive \
     GEOSERVER_DATA_DIR=/opt/geoserver/data_dir \
     GDAL_DATA=/usr/local/gdal_data \
-    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/apr/lib:/opt/libjpeg-turbo/lib64:/usr/lib:/usr/lib/x86_64-linux-gnu" \
+    LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/apr/lib:/opt/libjpeg-turbo/lib64:/usr/lib:/usr/lib/x86_64-linux-gnu:/usr/local/gdal_native_libs" \
     FOOTPRINTS_DATA_DIR=/opt/footprints_dir \
     GEOWEBCACHE_CACHE_DIR=/opt/geoserver/data_dir/gwc \
     ENABLE_JSONP=true \
