@@ -2,8 +2,9 @@
 
 #ARG IMAGE_VERSION=9.0.7-jre8
 # possibly better, but does not build 9-jdk11-openjdk-buster
-ARG IMAGE_VERSION=9-jre11-slim
-
+#ARG IMAGE_VERSION=9-jre11-slim
+ARG IMAGE_VERSION=9-jdk11-openjdk-buster
+ARG JAVA_HOME=/usr/local/openjdk-11
 FROM tomcat:$IMAGE_VERSION
 
 LABEL maintainer="Tim Sutton<tim@linfiniti.com>"
@@ -22,7 +23,8 @@ ARG WAR_URL=http://downloads.sourceforge.net/project/geoserver/GeoServer/${GS_VE
 ARG STABLE_PLUGIN_URL=https://liquidtelecom.dl.sourceforge.net/project/geoserver/GeoServer/${GS_VERSION}/extensions
 
 #Install extra fonts to use with sld font markers
-RUN apt-get -y update; apt-get install -y fonts-cantarell lmodern ttf-aenigma ttf-georgewilliams ttf-bitstream-vera \
+
+RUN apt-get -y update; apt-get install -y fonts-cantarell lmodern fonts-font-awesome ttf-aenigma ttf-georgewilliams ttf-bitstream-vera \
     ttf-sjfonts tv-fonts build-essential libapr1-dev libssl-dev  gdal-bin libgdal-java wget zip curl xsltproc certbot \
     certbot  cabextract
 
@@ -32,16 +34,15 @@ RUN wget http://ftp.br.debian.org/debian/pool/contrib/m/msttcorefonts/ttf-mscore
 RUN set -e \
     export DEBIAN_FRONTEND=noninteractive \
     dpkg-divert --local --rename --add /sbin/initctl \
-    # Set JAVA_HOME to /usr/lib/jvm/default-java and link it to OpenJDK installation
-    && ln -s /usr/lib/jvm/java-11-openjdk-amd64 /usr/lib/jvm/default-java \
     && (echo "Yes, do as I say!" | apt-get remove --force-yes login) \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+
 ENV \
-    JAVA_HOME=/usr/lib/jvm/default-java \
-    STABLE_EXTENSIONS='' \
-    COMMUNITY_EXTENSIONS='' \
+    JAVA_HOME=${JAVA_HOME} \
+    STABLE_EXTENSIONS= \
+    COMMUNITY_EXTENSIONS= \
     DEBIAN_FRONTEND=noninteractive \
     GEOSERVER_DATA_DIR=/opt/geoserver/data_dir \
     GDAL_DATA=/usr/local/gdal_data \
@@ -72,19 +73,33 @@ ENV \
     LETSENCRYPT_CERT_DIR=/etc/letsencrypt \
     RANDFILE=${LETSENCRYPT_CERT_DIR}/.rnd \
     GEOSERVER_CSRF_DISABLED=true \
-    FONTS_DIR=/opt/fonts
-
+    FONTS_DIR=/opt/fonts \
+    ENCODING='UTF8' \
+    TIMEZONE='GMT' \
+    CHARACTER_ENCODING='UTF-8' \
+    # cluster env variables
+    CLUSTERING=False \
+    CLUSTER_DURABILITY=true \
+    BROKER_URL= \
+    READONLY=disabled \
+    RANDOMSTRING=23bd87cfa327d47e \
+    INSTANCE_STRING=ac3bcba2fa7d989678a01ef4facc4173010cd8b40d2e5f5a8d18d5f863ca976f \
+    TOGGLE_MASTER=true \
+    TOGGLE_SLAVE=true \
+    EMBEDDED_BROKER=enabled \
+    DB_BACKEND= \
+    LOGIN_STATUS=on \
+    WEB_INTERFACE=false
+    
 WORKDIR /scripts
-RUN mkdir -p  ${GEOSERVER_DATA_DIR} ${LETSENCRYPT_CERT_DIR} ${FOOTPRINTS_DATA_DIR} ${FONTS_DIR}
-
+RUN mkdir -p  ${GEOSERVER_DATA_DIR} ${LETSENCRYPT_CERT_DIR} ${FOOTPRINTS_DATA_DIR} ${FONTS_DIR} ${GEOWEBCACHE_CACHE_DIR}
 ADD resources /tmp/resources
 ADD build_data /build_data
 RUN mkdir /community_plugins /stable_plugins /plugins
 RUN cp /build_data/stable_plugins.txt /plugins && cp /build_data/community_plugins.txt /community_plugins && \
     cp /build_data/log4j.properties  ${CATALINA_HOME} && cp /build_data/web.xml ${CATALINA_HOME}/conf && \
     cp /build_data/letsencrypt-tomcat.xsl ${CATALINA_HOME}/conf && \
-    cp /build_data/tomcat-users.xml /usr/local/tomcat/conf && \
-    cp /build_data/context.xml /usr/local/tomcat/webapps/manager/META-INF
+    cp /build_data/tomcat-users.xml /usr/local/tomcat/conf
 
 ADD scripts /scripts
 RUN chmod +x /scripts/*.sh
@@ -118,13 +133,16 @@ ENV \
 EXPOSE  $HTTPS_PORT
 
 RUN groupadd -r geoserverusers -g 10001 && \
-    useradd -M -u 10000 -g geoserverusers geoserveruser
-RUN chown -R geoserveruser:geoserverusers /usr/local/tomcat ${FOOTPRINTS_DATA_DIR}  \
- ${GEOSERVER_DATA_DIR} /scripts ${LETSENCRYPT_CERT_DIR} ${FONTS_DIR} /tmp/
+    useradd -m -d /home/geoserveruser/ --gid 10001 -s /bin/bash -G geoserverusers geoserveruser
+RUN chown -R geoserveruser:geoserverusers ${CATALINA_HOME} ${FOOTPRINTS_DATA_DIR}  \
+ ${GEOSERVER_DATA_DIR} /scripts ${LETSENCRYPT_CERT_DIR} ${FONTS_DIR} /tmp/ /home/geoserveruser/ /community_plugins/ \
+ /plugins
 
 RUN chmod o+rw ${LETSENCRYPT_CERT_DIR}
 
-#USER geoserveruser
+USER geoserveruser
+VOLUME ["${GEOSERVER_DATA_DIR}", "${LETSENCRYPT_CERT_DIR}", "${FOOTPRINTS_DATA_DIR}", "${FONTS_DIR}", "${GEOWEBCACHE_CACHE_DIR}"]
 WORKDIR ${CATALINA_HOME}
+
 
 CMD ["/bin/sh", "/scripts/entrypoint.sh"]
